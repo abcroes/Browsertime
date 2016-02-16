@@ -50,7 +50,7 @@ router.get('/torrent/:torrUrl*', function(req, res) {
 });
 
 router.get('/movies', function(req, res) {
-	request('https://yts.ag/api/v2/list_movies.json?sort_by=date_added&order_by=desc', function (error, response, body) {
+	request('https://yts.ag/api/v2/list_movies.json?sort_by=date_added&limit=50&order_by=desc', function (error, response, body) {
     	res.json(JSON.parse(body));
 	});
 });
