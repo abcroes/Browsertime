@@ -10,7 +10,10 @@ var magnet = require('magnet-uri')
 
 // initialise express
 var app = express();
-var router = express.Router();
+var apiRouter = express.Router();
+
+// Set some server variables
+var apiBase = "http://api.browser-time.com/"
 
 // use nunjucks to process view templates in express
 nunjucks.configure('server/templates/views', {
@@ -38,9 +41,10 @@ app.use('/js', browserify('./client/scripts', {
 }));
 
 
-router.get('/', function(req, res) {
+apiRouter.get('/', function(req, res) {
     // res.json();
 });
+
 
 router.get('/torrent/:torrUrl*', function(req, res) {
 	parseTorrent.remote(decodeURI(req.params.torrUrl), function (err, parsedTorrent) {
@@ -64,15 +68,31 @@ router.get('/search/:query', function(req, res) {
  	request('https://yts.ag/api/v2/list_movies.json?query_term=' + req.params.query, function (error, response, body) {
     	res.json(JSON.parse(body));
 	});
+
+apiRouter.get('/movies', function(req, res) {
+        request(apiBase + 'movies.json', function (error, response, body) {
+            try {
+                res.json(JSON.parse(body));
+            } catch(e) {
+                res.writeHead(500);
+                res.end('API IS DEAD');
+            }
+        });
+
 });
 
-router.get('/movie/:id', function(req, res) {
-    request('https://yts.ag/api/v2/movie_details.json?with_images=true&with_cast=true&movie_id=' + req.params.id, function (error, response, body) {
-        res.json(JSON.parse(body));
-    });
+apiRouter.get('/movie/:url', function(req, res) {
+    request(apiBase + req.params.url, function (error, response, body) {
+        try {
+            res.json(JSON.parse(body));
+        } catch(e) {
+            res.writeHead(404);
+            res.end('Movie not found');
+        }
+        });
 });
 
-app.use('/api', router);
+app.use('/api', apiRouter);
 
 app.get('*', function(req, res) {
 	// this route will respond to all requests with the contents of your index
